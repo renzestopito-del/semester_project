@@ -1,4 +1,4 @@
-# Your Approved Project Title
+# Milkfish Fry Counting and Density Estimation Using Image Processing
 
 ## Summary
 This project aims to address a community problem through a Flutter Web application. Its initial features include a Home page and a Login page, with plans to integrate a REST API and PostgreSQL database.
