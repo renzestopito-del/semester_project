@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>IT 110 - Lab Activity 9 - Student Portal</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Times New Roman", Georgia, serif;
+    font-size: 11.5pt;
+    line-height: 1.5;
+    color: #111;
+    margin: 0;
+  }
+  h1 {
+    font-size: 16pt;
+    margin: 0 0 2mm;
+    text-align: center;
+    letter-spacing: .2px;
+  }
+  .sub {
+    text-align: center;
+    font-size: 11pt;
+    margin: 0 0 6mm;
+    color: #333;
+  }
+  h2 {
+    font-size: 12.5pt;
+    margin: 7mm 0 2.5mm;
+    border-bottom: 1px solid #999;
+    padding-bottom: 1mm;
+  }
+  h3 {
+    font-size: 11.5pt;
+    margin: 5mm 0 1.5mm;
+  }
+  p { margin: 0 0 3mm; text-align: justify; }
+  ol, ul { margin: 0 0 3mm; padding-left: 7mm; }
+  li { margin-bottom: 1.5mm; text-align: justify; }
+  .repo {
+    background: #f4f4f4;
+    border-left: 3px solid #1b5e20;
+    padding: 3mm 4mm;
+    font-size: 10.5pt;
+    margin: 0 0 3mm;
+  }
+  .repo div { margin: 1mm 0; }
+  .repo b { display: inline-block; min-width: 28mm; }
+  code { font-family: Consolas, monospace; font-size: 10pt; }
+  figure {
+    margin: 0 0 6mm;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  figure img {
+    display: block;
+    width: 100%;
+    border: 1px solid #bbb;
+  }
+  figcaption { margin-top: 2mm; font-size: 10.5pt; }
+  figcaption .label { font-weight: bold; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10.5pt;
+    margin: 0 0 4mm;
+  }
+  th, td {
+    border: 1px solid #888;
+    padding: 2mm 2.5mm;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: #ececec; }
+  .note {
+    font-size: 9.5pt;
+    color: #555;
+    margin-top: 4mm;
+  }
+  .page-break { page-break-before: always; break-before: page; }
+</style>
+</head>
+<body>
+
+<h1>IT 110 &mdash; LAB ACTIVITY 9</h1>
+<p class="sub">Reusable Screens, Shared Widgets and Asynchronous UI States<br>
+Project: <b>Student Portal</b> (continuation of Lab Activity 8)<br>
+Activity No. 9 &mdash; Primary Output: <i>Activity 8 project extended with
+<code>report_form_screen.dart</code>, reusable widgets and six screenshots</i></p>
+
+<h2>Activity 9 Summary</h2>
+<p>
+Activity 9 extended the existing Student Portal project instead of rebuilding it. The Activity&nbsp;8
+Home and Login screens were kept as they were, and a new <code>/report</code> route was added in
+<code>app.dart</code> so the Report Form screen (<code>lib/screens/report_form_screen.dart</code>) opens
+from a button on the Home screen and can be left again with the Back button. The new screen is a real
+report form for the group&rsquo;s approved system, with five fields (report title, category, location,
+priority and description), field-level validation for every required input, and a simulated submission
+whose data is stored in <code>services/report_service.dart</code> and modelled by
+<code>models/student_report.dart</code>. It demonstrates the four asynchronous UI responses &mdash;
+Loading, Success, Empty and Error &mdash; with a spinner and a disabled submit button while a request
+is pending, a confirmation with the saved report on success, a no-data panel with a first-report action
+when nothing exists yet, and a clear failure message with a working Retry. The form reuses the shared
+<code>AppButton</code> and <code>AppTextField</code> widgets from <code>lib/widgets/</code> in more than
+one context, so the styling and behaviour stay consistent with the Activity&nbsp;8 screens, and because
+all data access goes through the service layer, the simulated responses can later be replaced by the real
+REST API and PostgreSQL database without changing the screens.
+</p>
+
+<h2>Updated GitHub Repository</h2>
+<div class="repo">
+  <div><b>Repository:</b> <code>https://github.com/renzestopito-del/semester_project</code></div>
+  <div><b>Branch:</b> <code>main</code></div>
+  <div><b>Activity 8 checkpoint:</b> <code>f1dccad</code> &mdash; Initial Flutter Web project (October 15, 2026)</div>
+  <div><b>Activity 9 commit:</b> <code>ab1fc44</code> &mdash; Add report form screen with loading, success, empty and error states</div>
+  <div><b>Commit link:</b> <code>https://github.com/renzestopito-del/semester_project/commit/ab1fc44</code></div>
+  <div><b>Latest commit:</b> <code>ab1fc44</code> &mdash; Add report form screen with loading, success, empty and error states</div>
+</div>
+
+<h2>Functional Verification Checklist</h2>
+<table>
+  <tr><th style="width: 44%;">Test</th><th>Observed outcome / evidence</th></tr>
+  <tr>
+    <td>Home &rarr; Report Form navigation</td>
+    <td><b>PASS.</b> The Home screen shows an <i>Open Student Report Form</i> button that calls
+        <code>Navigator.pushNamed(context, AppRoutes.report)</code>; the <code>/report</code> route is
+        registered in the <code>MaterialApp</code> routes map of <code>lib/app.dart</code>. The Home and
+        Login screens of Activity 8 are unchanged and still work. (Screenshots 1 and 2)</td>
+  </tr>
+  <tr>
+    <td>Invalid form produces field-level validation</td>
+    <td><b>PASS.</b> The form is wrapped in a <code>Form</code> with a <code>GlobalKey&lt;FormState&gt;</code>.
+        Every <code>AppTextField</code> has a validator (title required and at least 5 characters, location
+        required, description required and at least 20 characters, capped at 500). The request is never sent
+        and each field shows its own message under the input. (Screenshot 7)</td>
+  </tr>
+  <tr>
+    <td>Valid submit &rarr; Loading &rarr; Success</td>
+    <td><b>PASS.</b> The state changes to <code>ReportUiState.loading</code> before the request starts; the
+        spinner banner appears and the <i>Submit Report</i> button is disabled for the 3-second simulated
+        request. When the service answers, the confirmation and the saved report card are shown.
+        (Screenshots 3 and 4)</td>
+  </tr>
+  <tr>
+    <td>No available report records &rarr; Empty</td>
+    <td><b>PASS.</b> Pressing <i>View Reports</i> before any report has been created returns an empty list
+        and shows the <i>No reports available yet.</i> panel with the <i>Create Your First Report</i> and
+        <i>Refresh Reports</i> actions. Filtering the list with a keyword that matches nothing gives the same
+        Empty response. (Screenshot 5)</td>
+  </tr>
+  <tr>
+    <td>Simulated failure &rarr; Error &rarr; Retry</td>
+    <td><b>PASS.</b> Turning on the <i>Simulate a server error (demo only)</i> switch and submitting a valid
+        form makes the service throw <code>ReportServiceException</code>; the screen shows the failure
+        explanation with <i>Retry</i> (repeats the request) and <i>Edit Report</i> (returns to the filled
+        form). (Screenshot 6)</td>
+  </tr>
+  <tr>
+    <td>Shared button or field widget used in two contexts</td>
+    <td><b>PASS.</b> <code>AppButton</code> (<code>lib/widgets/app_button.dart</code>) is used in
+        <code>home_screen.dart</code> and in <code>report_form_screen.dart</code>; <code>AppTextField</code>
+        (<code>lib/widgets/app_text_field.dart</code>) is used for the title, location and description fields
+        and for the report-list filter. (Screenshot 2)</td>
+  </tr>
+</table>
+
+<h2>How each Activity 9 requirement is met</h2>
+<table>
+  <tr><th style="width: 34%;">Requirement</th><th>Where it is satisfied</th></tr>
+  <tr>
+    <td>Continue the same Activity 8 project and repository</td>
+    <td>Same <code>semester_project</code> folder and same GitHub repository; the Activity 8 files
+        (<code>home_screen.dart</code>, <code>login_screen.dart</code>, <code>app_button.dart</code>,
+        <code>app_text_field.dart</code>) are preserved and the Activity 9 work is a second commit
+        (<code>ab1fc44</code>) on the same <code>main</code> branch.</td>
+  </tr>
+  <tr>
+    <td>New <code>lib/screens/report_form_screen.dart</code> connected to the Home screen</td>
+    <td>New file added under <code>lib/screens/</code>; route <code>AppRoutes.report</code> added in
+        <code>lib/app.dart</code>; the Home screen gained one <code>AppButton</code> that pushes that route.</td>
+  </tr>
+  <tr>
+    <td>Reuse existing UI components</td>
+    <td><code>AppButton</code> and <code>AppTextField</code> from <code>lib/widgets/</code> are reused in
+        the new form; no interface code was duplicated.</td>
+  </tr>
+  <tr>
+    <td>Working form with validation and feedback</td>
+    <td>Title, Category, Location, Priority and Description fields with field-level validators, a submit
+        action, an inline error banner, and a confirmation panel with next actions.</td>
+  </tr>
+  <tr>
+    <td>Four asynchronous UI responses</td>
+    <td><code>ReportUiState.loading / success / empty / error</code> in
+        <code>lib/screens/report_form_screen.dart</code>, backed by the simulated
+        <code>lib/services/report_service.dart</code>.</td>
+  </tr>
+  <tr>
+    <td>Six authentic screenshots</td>
+    <td>Screenshots 1 to 6 below (plus the extra validation screenshot 7), captured from the running
+        Flutter Web application in Chrome and the VS Code Explorer of this project.</td>
+  </tr>
+</table>
+
+<h2>Screenshots</h2>
+
+<figure>
+  <img src="../screenshots/activity9/screenshot1_project_structure.png" alt="Screenshot 1 - project structure">
+  <figcaption>
+    <span class="label">Screenshot 1 &mdash; Updated screen/widget structure.</span>
+    The VS Code Explorer shows the project folder <code>semester_project</code> with the Activity&nbsp;8
+    files still in place (<code>home_screen.dart</code>, <code>login_screen.dart</code>,
+    <code>app_button.dart</code>, <code>app_text_field.dart</code>) and the new
+    <code>lib/screens/report_form_screen.dart</code> added beside them.
+  </figcaption>
+</figure>
+
+<figure>
+  <img src="../screenshots/activity9/screenshot2_widget_reuse.png" alt="Screenshot 2 - shared widget reuse">
+  <figcaption>
+    <span class="label">Screenshot 2 &mdash; Shared widget reused in two contexts.</span>
+    The left editor shows <code>AppTextField</code> and <code>AppButton</code> being used inside
+    <code>report_form_screen.dart</code>, while the right editor shows the same <code>AppButton</code>
+    from <code>lib/widgets/app_button.dart</code> being used in the existing
+    <code>home_screen.dart</code>.
+  </figcaption>
+</figure>
+
+<figure>
+  <img src="../screenshots/activity9/screenshot3_loading_state.png" alt="Screenshot 3 - loading state">
+  <figcaption>
+    <span class="label">Screenshot 3 &mdash; LOADING.</span>
+    <b>Triggering action:</b> a student fills in a valid report and presses <i>Submit Report</i>, and
+    while the request is pending the screen shows a spinner message and keeps the submit button disabled
+    so the same report cannot be submitted twice.
+  </figcaption>
+</figure>
+
+<figure>
+  <img src="../screenshots/activity9/screenshot4_success_state.png" alt="Screenshot 4 - success state">
+  <figcaption>
+    <span class="label">Screenshot 4 &mdash; SUCCESS.</span>
+    <b>Triggering action:</b> the student waits for the pending submission to finish, and the screen
+    replaces the form with a confirmation, the saved report and the <i>Submit Another Report</i> and
+    <i>View All Reports</i> actions.
+  </figcaption>
+</figure>
+
+<figure>
+  <img src="../screenshots/activity9/screenshot5_empty_state.png" alt="Screenshot 5 - empty state">
+  <figcaption>
+    <span class="label">Screenshot 5 &mdash; EMPTY.</span>
+    <b>Triggering action:</b> the student presses <i>View Reports</i> before creating any report, so the
+    screen returns an empty list and shows the no-data message with the <i>Create Your First Report</i>
+    and <i>Refresh Reports</i> actions.
+  </figcaption>
+</figure>
+
+<figure>
+  <img src="../screenshots/activity9/screenshot6_error_state.png" alt="Screenshot 6 - error state">
+  <figcaption>
+    <span class="label">Screenshot 6 &mdash; ERROR.</span>
+    <b>Triggering action:</b> the student turns on the <i>Simulate a server error (demo only)</i> switch
+    and submits a valid report, and the screen shows a clear failure explanation together with the
+    <i>Retry</i> and <i>Edit Report</i> actions.
+  </figcaption>
+</figure>
+
+<figure>
+  <img src="../screenshots/activity9/screenshot7_field_validation.png" alt="Screenshot 7 - field validation">
+  <figcaption>
+    <span class="label">Screenshot 7 &mdash; FIELD-LEVEL VALIDATION (extra evidence).</span>
+    <b>Triggering action:</b> the student presses <i>Submit Report</i> with empty fields; the request is
+    not sent and every invalid input shows its own message under the field together with the
+    <i>Please correct the highlighted fields.</i> banner.
+  </figcaption>
+</figure>
+
+<p class="note">
+  Note: all four asynchronous responses were produced by the simulated service
+  (<code>Future.delayed</code> with an in-memory list). No real database record was created, and the
+  screen labels every simulated response as such.
+</p>
+
+<div class="page-break"></div>
+
+<h2>Post-Laboratory Reflection</h2>
+
+<h3>1. How does <code>report_form_screen.dart</code> extend your Activity 8 project without replacing its existing Home and Login screens?</h3>
+<p>
+<code>report_form_screen.dart</code> is a new file added beside the Activity 8 files &mdash; nothing in
+<code>home_screen.dart</code> or <code>login_screen.dart</code> was replaced or rewritten. The only change
+to the old navigation is a new named route, <code>/report</code>, added to the existing routes map in
+<code>app.dart</code>, so <code>/</code> still opens <code>HomeScreen</code> and <code>/login</code> still
+opens <code>LoginScreen</code>. The Home screen only gained one extra <code>AppButton</code> that calls
+<code>Navigator.pushNamed(context, AppRoutes.report)</code>, so the report form opens on top of Home and the
+Back button returns to the previous screen. Because the new screen uses the same <code>MaterialApp</code>
+theme and the same shared widgets, it keeps the Activity 8 look and feel.
+</p>
+
+<h3>2. Which shared widget did your group reuse, and what benefit does that provide?</h3>
+<p>
+The main shared widget we reused is <code>AppButton</code> from <code>lib/widgets/app_button.dart</code>.
+It is used in <code>home_screen.dart</code> (Open Student Report Form / Open Login) and again in
+<code>report_form_screen.dart</code> (Submit Report, Retry, Edit Report, Submit Another Report, View All
+Reports). We also reused <code>AppTextField</code> from <code>lib/widgets/app_text_field.dart</code> for the
+title, location and description fields and for the reports filter.
+</p>
+<p>
+The benefit is one implementation for consistent styling and behavior, less duplicated code, and one place to
+fix bugs. <code>AppButton</code> already supports <code>isLoading</code> (spinner inside the button) and a
+nullable <code>onPressed</code> (disabled state), so the Loading response needed no new button;
+<code>AppTextField</code> already supports <code>validator</code>, <code>onChanged</code>,
+<code>maxLines</code> and <code>maxLength</code>, so field-level validation came for free.
+</p>
+
+<h3>3. How does your report form prevent invalid input and duplicate submissions?</h3>
+<p>
+<b>Invalid input:</b> the form is wrapped in a <code>Form</code> with a
+<code>GlobalKey&lt;FormState&gt;</code>, and every <code>AppTextField</code> has a validator &mdash; title
+required and at least 5 characters, location required, description required, at least 20 characters and
+capped at 500 &mdash; while the category and priority dropdowns only accept the fixed values in
+<code>AppConstants</code>. On submit, <code>formKey.currentState.validate()</code> runs all validators; if any
+fail, the request is never sent and each field shows its own message under the input.
+</p>
+<p>
+<b>Duplicate submissions:</b> the state is set to <code>ReportUiState.loading</code> before the request starts,
+and while loading the Submit Report button receives <code>onPressed: null</code> (disabled) and shows the
+loading spinner, and the View Reports action is disabled too. Since the button cannot be pressed again while
+the request is in flight, the same report cannot be sent twice.
+</p>
+
+<h3>4. How did you reproduce the Loading, Success, Empty, and Error responses? Which were simulated?</h3>
+<p>
+All four responses are simulated &mdash; <code>ReportService</code> uses
+<code>Future.delayed(Duration(seconds: 3))</code> and an in-memory list. There is no REST API or database
+yet, and the screen says so (<i>&ldquo;Simulated response &ndash; no real database record was
+created.&rdquo;</i>).
+</p>
+<ul>
+  <li><b>Loading</b> &ndash; press <i>Submit Report</i>; the form stays visible with a spinner banner and the
+      disabled submit button until the delay ends.</li>
+  <li><b>Success</b> &ndash; after the delay the service returns the saved report, and the confirmation card
+      with the submitted details is shown.</li>
+  <li><b>Empty</b> &ndash; press <i>View Reports</i> before creating any report, so the in-memory list is empty
+      and the <i>No reports available yet</i> panel with <i>Create Your First Report</i> appears (or filter the
+      list with a keyword that matches nothing).</li>
+  <li><b>Error</b> &ndash; turn on <i>Simulate a server error (demo only)</i> and submit a valid form; the
+      service throws <code>ReportServiceException</code> and the error panel with <i>Retry</i> and
+      <i>Edit Report</i> is shown.</li>
+</ul>
+
+<h3>5. What must be changed when the real REST API and PostgreSQL database are connected later?</h3>
+<ul>
+  <li>Replace the <code>Future.delayed</code> bodies in <code>report_service.dart</code> with real HTTP calls
+      (<code>POST /api/reports</code>, <code>GET /api/reports</code>) and parse the JSON using the
+      <code>StudentReport</code> model, keeping the same method names and return types.</li>
+  <li>Map HTTP status codes, timeouts and <code>SocketException</code> into
+      <code>ReportServiceException</code> so the existing Error state and Retry still work, and keep
+      <code>200</code> + <code>[]</code> as the Empty state.</li>
+  <li>Add the API base URL and the auth token from the login session, and remove the demo
+      <i>Simulate a server error</i> switch and the <i>simulated</i> labels.</li>
+  <li>Backend/database work: a <code>reports</code> table
+      (<code>id, student_id, title, category, location, priority, description, created_at</code>),
+      server-side validation, and CORS for Flutter Web.</li>
+  <li>Update the tests to use a mocked HTTP client instead of the simulated delay.</li>
+</ul>
+
+</body>
+</html>
